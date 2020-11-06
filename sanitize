@@ -1,0 +1,109 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+require 'vendor/autoload.php';
+
+function usage() {
+    global $argv;
+    $myname = basename($argv[0]);
+    echo "
+Scrub a file containing one or more JSON objects of sensitive values.
+
+USAGE:
+    ${myname} [config='./config.json'] [objects='./objects.json'] [replace='***']
+
+WHERE:
+    config   Is a file describing the keys to be scrubbed. Defaults to
+             './config.json'. See the config.json for a description of the file.
+    objects  Is a file containing the objects to to be scrubbed. Keys in those
+             objects matching keys in the config file will be replaced with the
+             given replacement. Default is './objects.json'.
+    replace  The string to replace matching keys with. Defaults to '***'.
+
+OUTPUT:
+    Outputs on standard out the scrubbed version of each JSON object from the
+    given objects, each object separated by a newline. The original white space
+    may not be preserved.
+
+EXIT CODES:
+    0 if everything is ok
+    1 if incorrect arguments are given
+    2 if the files pointed to by the arguments cannot be read
+    3 if the files do not contain valid JSON
+    4 if the configuration file does not have a recognized format
+";
+}
+
+// set defaults per usage and ensure we have all required arguments
+if (! $argv[1]) {
+    $argv[1] = './config.json';
+}
+if (! $argv[2]) {
+    $argv[2] = './objects.json';
+}
+if (! $argv[3]) {
+    $argv[3] = '***';
+}
+if (4 < count($argv)) {
+    fprintf(STDERR, "Too many arguments given. Expect at most 3, %d given.\n", count($argv));
+    usage();
+    exit(1);
+}
+
+// emit help if asked for it
+if (in_array($argv[1], [ '-h', '--help', 'help', '-?', '/?' ])) {
+    usage();
+    exit(0);
+}
+
+// read the keys out of the configuration
+$config = file_get_contents($argv[1]);
+if (false === $config) {
+    fprintf(STDERR, "Unable to read configuration file: %s\n", $argv[1]);
+    exit(2);
+}
+try {
+    // TODO: max depth hard coded to 512... make a cli option
+    $config = json_decode($config, true, 512, JSON_THROW_ON_ERROR);
+} catch (\Exception $ex) {
+    fprintf(STDERR, "Configuration file does not contain valid json: %s\n", $ex->getMessage());
+    exit(3);
+}
+if (isset($config['keys']['strings']) && is_array($config['keys']['strings'])) {
+    foreach ($config['keys']['strings'] as $i => $string) {
+        if (! is_scalar($string)) {
+            fprintf(STDERR, "Value for keys.strings must be array of scalars: not scalar at index %d\n", $i);
+            exit(4);
+        }
+    }
+} else {
+    fprintf(STDERR, "Configuration file missing required array keys.strings: may not be present or not array\n");
+    exit(4);
+}
+
+// read each object out of the objects file and scrub it
+// TODO: if this file is huge, we may want to split it or use a streaming JSON
+// TODO: parser
+$objects = file_get_contents($argv[2]);
+if (false === $objects) {
+    fprintf(STDERR, "Unable to read objects file: %s\n", $argv[2]);
+    exit(2);
+}
+foreach (explode("\n", $objects) as $i => $json) {
+    $json = trim($json);
+    if (empty($json)) {
+        continue;
+    }
+    try {
+        // TODO: max depth hard coded to 512... make a cli option
+        $object = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+    } catch (\Exception $ex) {
+        fprintf(STDERR, "Object file does not contain valid json at index: %d, starts with '%s': %s\n",
+            $i, substr($json, 20), $ex->getMessage());
+        exit(3);
+    }
+
+    $scrubbed = (new \ObjectScrub)->scrub($config['keys']['strings'], $object, $argv[3]);
+
+    printf("%s\n", json_encode($scrubbed, JSON_FORCE_OBJECT));
+}
