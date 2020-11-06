@@ -40,6 +40,10 @@ class ObjectScrubTest extends TestCase
                 'non-intersecting key at mid-level on non-empty object not should scrub',
                 [ 'foo.quux' ], [ 'foo' => [ 'bar' => 'baz' ] ], 'X', [ 'foo' => [ 'bar' => 'baz' ] ],
             ],
+            [
+                'scrub recursively if the key points to a object',
+                [ 'foo' ], [ 'foo' => [ 'baz', 'baz' => [ 'quux' ] ] ], 'X', [ 'foo' => [ 'X', 'baz' => [ 'X' ] ] ],
+            ],
         ];
     }
 }

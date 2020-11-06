@@ -12,9 +12,10 @@ class ObjectScrub
      *
      * @param array $keys A description of the keys to scrub.
      * @param array $source The object to scrub.
+     * @param string $replacement The string to replace the scalar matches by.
      * @return array The scrubbed object.
      */
-    public function scrub(array $keys, array $source, $replacement)
+    public function scrub(array $keys, array $source, string $replacement)
     {
         foreach ($keys as $key) {
             $path = explode('.', $key);
@@ -27,9 +28,30 @@ class ObjectScrub
                 if (! is_array($node)) {
                     $node = $replacement;
                     break;
+                } else if (! count($path)) {
+                    $this->replaceAllScalars($node, $replacement);
+                    break;
                 }
             }
         }
         return $source;
+    }
+
+    /**
+     * Replace all scalar values in the given array with the given string.
+     *
+     * @param array $source The object to scrub.
+     * @param string $replacement The string to replace the scalar values by.
+     * @return void
+     */
+    private function replaceAllScalars(array &$node, string $replacement)
+    {
+        foreach ($node as $key => $value) {
+            if (is_scalar($value)) {
+                $node[$key] = $replacement;
+            } else if (is_array($value)) {
+                $this->replaceAllScalars($node[$key], $replacement);
+            }
+        }
     }
 }
