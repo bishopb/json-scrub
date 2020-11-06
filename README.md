@@ -73,3 +73,7 @@ EXIT CODES:
     3 if the files do not contain valid JSON
     4 if the configuration file does not have a recognized format
 ```
+
+See the [`examples/`][ex] directory for some possible usages.
+
+[ex]:./examples/
