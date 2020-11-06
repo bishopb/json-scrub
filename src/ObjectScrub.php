@@ -21,6 +21,20 @@ class ObjectScrub
      */
     public function scrub(array $keys, array $source, $replacement)
     {
+        foreach ($keys as $key) {
+            $path = explode('.', $key);
+            $node = &$source;
+            while ($next = array_shift($path)) {
+                if (! array_key_exists($next, $node)) {
+                    break;
+                }
+                $node = &$node[$next];
+                if (! is_array($node)) {
+                    $node = $replacement;
+                    break;
+                }
+            }
+        }
         return $source;
     }
 }

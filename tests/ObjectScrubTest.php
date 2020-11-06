@@ -9,7 +9,7 @@ class ObjectScrubTest extends TestCase
      */
     public function testScrub($message, $keys, $object, $replacement, $expected)
     {
-        $actual = (new ObjectScrub)->scrub($keys, $object);
+        $actual = (new ObjectScrub)->scrub($keys, $object, $replacement);
         $this->assertSame($expected, $actual, $message);
     }
 
@@ -38,7 +38,7 @@ class ObjectScrubTest extends TestCase
             ],
             [
                 'non-intersecting key at mid-level on non-empty object not should scrub',
-                [ 'foo.quux' ], [ 'foo' => [ 'bar' => 'baz' ] ], [ 'foo' => [ 'bar' => 'baz' ] ],
+                [ 'foo.quux' ], [ 'foo' => [ 'bar' => 'baz' ] ], 'X', [ 'foo' => [ 'bar' => 'baz' ] ],
             ],
         ];
     }
