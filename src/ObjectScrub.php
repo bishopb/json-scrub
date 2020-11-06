@@ -38,6 +38,31 @@ class ObjectScrub
     }
 
     /**
+     * Traverse a given object, looking for the named keys. If found, regardless
+     * of depth, replace their values with the given replacement.
+     *
+     * @param array $keys The keys to scrub.
+     * @param array $source The object to scrub.
+     * @param string $replacement The string to replace the scalar matches by.
+     * @return array The scrubbed object.
+     */
+    public function scrubAll(array $keys, array $source, string $replacement)
+    {
+        foreach ($source as $key => $value) {
+            if (in_array($key, $keys)) {
+                if (is_scalar($value)) {
+                    $source[$key] = $replacement;
+                } else {
+                    $this->replaceAllScalars($source[$key], $replacement);
+                }
+            } else if (is_array($value)) {
+                $source[$key] = $this->scrubAll($keys, $source[$key], $replacement);
+            }
+        }
+        return $source;
+    }
+
+    /**
      * Replace all scalar values in the given array with the given string.
      *
      * @param array $source The object to scrub.

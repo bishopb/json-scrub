@@ -2,8 +2,11 @@
   "_comment": "Configure the JSON scrubber. This is a comment. They are ignored.",
   "version": 1,
   "keys": {
-    "_comment": "List of strings. Each string is a dot-separated string representing the key to scrub.",
-    "strings": [
+    "_comment": "`paths` is list of strings, each a dot-separated value representing the key to scrub.",
+    "paths": [
+    ],
+    "_comment": "`global` is list of strings, each representing the key to scrub regardless of where it appears in the object.",
+    "global": [
     ]
   }
 }

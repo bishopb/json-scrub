@@ -1,9 +1,7 @@
 {
-  "_comment": "Configure the JSON scrubber. This is a comment. They are ignored.",
   "version": 1,
   "keys": {
-    "_comment": "List of strings. Each string is a dot-separated string representing the key to scrub.",
-    "strings": [
+    "paths": [
       "payment.data.user"
     ]
   }

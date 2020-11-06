@@ -69,16 +69,25 @@ try {
     fprintf(STDERR, "Configuration file does not contain valid json: %s\n", $ex->getMessage());
     exit(3);
 }
-if (isset($config['keys']['strings']) && is_array($config['keys']['strings'])) {
-    foreach ($config['keys']['strings'] as $i => $string) {
+$paths = [];
+$global = [];
+if (isset($config['keys']['paths']) && is_array($config['keys']['paths'])) {
+    foreach ($config['keys']['paths'] as $i => $string) {
         if (! is_scalar($string)) {
-            fprintf(STDERR, "Value for keys.strings must be array of scalars: not scalar at index %d\n", $i);
+            fprintf(STDERR, "Value for keys.paths must be array of scalars: not scalar at index %d\n", $i);
             exit(4);
         }
     }
-} else {
-    fprintf(STDERR, "Configuration file missing required array keys.strings: may not be present or not array\n");
-    exit(4);
+    $paths = $config['keys']['paths'];
+}
+if (isset($config['keys']['global']) && is_array($config['keys']['global'])) {
+    foreach ($config['keys']['global'] as $i => $string) {
+        if (! is_scalar($string)) {
+            fprintf(STDERR, "Value for keys.global must be array of scalars: not scalar at index %d\n", $i);
+            exit(4);
+        }
+    }
+    $global = $config['keys']['global'];
 }
 
 // read each object out of the objects file and scrub it
@@ -103,7 +112,9 @@ foreach (explode("\n", $objects) as $i => $json) {
         exit(3);
     }
 
-    $scrubbed = (new \ObjectScrub)->scrub($config['keys']['strings'], $object, $argv[3]);
+    $scrubber = new \ObjectScrub;
+    $scrubbed = $scrubber->scrub($paths, $object, $argv[3]);
+    $scrubbed = $scrubber->scrubAll($global, $scrubbed, $argv[3]);
 
     printf("%s\n", json_encode($scrubbed, JSON_FORCE_OBJECT));
 }
