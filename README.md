@@ -25,11 +25,6 @@ The library routine is in `ObjectScrub::scrub`:
    * Key specification is given in dot notation, where each dot represents
    * descent. Eg, "foo.bar" would match a key in [ "foo" => [ "bar" => "baz" ] ]
    *
-   * Key specification may also include patterns, expressed as [glob][1]. For
-   * example, "fo*" would match keys "foo" and "fob".
-   *
-   * [1]:https://www.php.net/manual/en/function.fnmatch.php
-   *
    * @param array $keys A description of the keys to scrub.
    * @param array $source The object to scrub.
    * @return array The scrubbed object.
