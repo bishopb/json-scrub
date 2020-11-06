@@ -14,29 +14,20 @@ There are two ways to use this code: library and command line.
 
 ### Library
 
-The library routine is in `ObjectScrub::scrub`:
+There are two library functions for use:
 
-```php
-  /**
-   * Traverse a given object, looking for keys matching the given
-   * specification. If the object contains a matching key, replace the value
-   * pointed to by that key with a replacement string.
-   *
-   * Key specification is given in dot notation, where each dot represents
-   * descent. Eg, "foo.bar" would match a key in [ "foo" => [ "bar" => "baz" ] ]
-   *
-   * @param array $keys A description of the keys to scrub.
-   * @param array $source The object to scrub.
-   * @return array The scrubbed object.
-   */
-  public function scrub(array $keys, array $source, $replacement);
-```
+1. `ObjectScrub::scrubAll` replaces the value of all instances of the given
+   keys, regardless of where they appear in the given object.
+1. `ObjectScrub::scrub` replaces the value for all keys that match the _path_
+   given, in dot notation. So `foo.bar` would replace the value "baz" in this:
+   `{ "foo": { "bar": "baz" }, "foo.bar": "quux"  }`.
 
-To use this:
+For example:
 
 ```php
 $scrubber = new \ObjectScrub();
-$objects = $scrubber->scrub($keys, $objects, '***');
+$objects = $scrubber->scrub([ 'foo.bar' ], $objects, '***');
+$objects = $scrubber->scrubAll([ 'foo' ], $objects, '***');
 ```
 
 Refer to the `tests/` directory for more example usages.
